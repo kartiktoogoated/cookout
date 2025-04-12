@@ -147,4 +147,44 @@ testOneRouter.get(
   }
 );
 
+testOneRouter.put('/me', authMiddleware , async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+
+  const user = ( req as AuthenticatedRequest).user;
+  const userId = user?.userId;
+
+  if (!userId) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+  
+  if (!name && !email && !password) {
+    res.status(404).json({ message: 'Nothing to update' });
+    return;
+  }
+
+  const updatedData: { name?: string; email?: string; password?: string } = {}
+
+  if (name) updatedData.name = name;
+  if (email) updatedData.email = email
+  if (password) updatedData.password = await bcrypt.hash(password, 10);
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updatedData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      }
+    });
+
+    res.status(200).json({ message: `User Updated: ${user}` });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 export default testOneRouter;
