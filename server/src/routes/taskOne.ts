@@ -8,6 +8,34 @@ const testOneRouter = Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET! || "mysecretkey";
 
+testOneRouter.post('/signup', async (req: Request, res: Response): Promise<void> => {
+  const { name, email, password } = req.body;
+  if(!email || !password) {
+    res.status(400).json({ message:"Invalid credentials "})
+    return;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (existingUser) {
+      res.status(400).json({ message: "User already exists "});
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+      },
+    });
+    res.status(200).json({ message: "User created successfully "});
+    return;
+  }
+})
+
 testOneRouter.post(
   "/signup",
   async (req: Request, res: Response): Promise<void> => {
@@ -79,42 +107,6 @@ testOneRouter.post("/signup", async (req: Request, res: Response) => {
   return;
 });
 
-testOneRouter.post(
-  "/signin", 
-  async (req: Request, res: Response): Promise<void> => {
-    const { email, password } = req.body;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (!user) {
-      res.status(400).json({ message: "User not found" });
-      return;
-    }
-
-    const isValid = await compare(password, user.password);
-
-    if (!isValid) {
-      res.status(400).json({ message: "Incorrect Password" });
-    }
-
-    const token = jwt.sign(
-        {
-          userId: user.id,
-          email: user.email,
-          name: user.name,
-        },
-        JWT_SECRET,
-        { expiresIn: "1d" } // optional
-      );
-
-    res.status(200).json({ message: "User signed in", token });
-    return;
-  }
-);
 
 testOneRouter.get(
   '/me',
@@ -186,5 +178,76 @@ testOneRouter.put('/me', authMiddleware , async (req: Request, res: Response) =>
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
+testOneRouter.post(
+  "/signin", 
+  async (req: Request, res: Response): Promise<void> => {
+    const { email, password } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({ message: "User not found" });
+      return;
+    }
+
+    const isValid = await compare(password, user.password);
+
+    if (!isValid) {
+      res.status(400).json({ message: "Incorrect Password" });
+    }
+
+    const token = jwt.sign(
+        {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+        },
+        JWT_SECRET,
+        { expiresIn: "1d" } 
+      );
+
+    res.status(200).json({ message: "User signed in", token });
+    return;
+  }
+);
+
+testOneRouter.post("/signin", async( req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if(!user) {
+    res.status(400).json({ message: "User not found" });
+    return;
+  }
+
+  const isValid = await compare(password, user.password);
+
+  if (!isValid) {
+    res.status(400).json({ message: "Password is not valid "});
+    return;
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    },
+    JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  res.status(200).json({ message: "User signed in", token});
+  return;
+})
+
 
 export default testOneRouter;
