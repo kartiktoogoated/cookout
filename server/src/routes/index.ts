@@ -17,6 +17,21 @@ testRouter.get('/users', async (req: Request, res: Response): Promise<void> => {
     res.json(users);
 })
 
+/// create a function to create a user with current schema prisma
+testRouter.post('/users', async (req: Request, res: Response): Promise<void> => {
+    const { name, email, password } = req.body;
+
+    const user = await prisma.user.create({
+        data: {
+            name,
+            email,
+            password,
+        },
+    });
+
+    res.json(user);
+});
+
 export default testRouter;
 
 
