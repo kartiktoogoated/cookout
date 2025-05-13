@@ -1,8 +1,10 @@
 {
   "dependencies": {
     "@types/cors": "^2.8.18",
+    "@types/ws": "^8.18.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "ws": "^8.18.2",
     "zod": "^3.24.4"
   }
 }
