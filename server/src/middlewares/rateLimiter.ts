@@ -20,7 +20,6 @@ export function redisRateLimiter({
             res.status(429).json({ error: "Too many requests" });
             return;
         }
-
         next();
     }
 }
