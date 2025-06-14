@@ -1,22 +1,26 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import axios, { AxiosError } from "axios";
+
+interface WeatherRespone {
+  city: string;
+  temp: number;
+  condition: string;
+}
 
 export default function WeatherCard() {
-  const [weather, setWeather] = useState<any>(null);
+  const [city] = useState("Noida");
+  const [data, setData] = useState<WeatherRespone | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    axios.get("/api/weather?city=Noida").then((res) => {
-      setWeather(res.data); // clean, custom-shaped response
-    });    
-  }, []);
+  const fetchWeather = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  if (!weather) return <p>Loading...</p>;
+    try {
 
-  return (
-    <div>
-      <h1>{weather.name}</h1>
-      <p>{weather.weather[0].description}</p>
-      <p>{weather.main.temp} °C</p>
-    </div>
-  );
+    } catch(err: any) {
+      
+    }
+  })
 }
